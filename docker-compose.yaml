@@ -1,0 +1,40 @@
+version: '3.4'
+
+services:
+  db:
+    image: postgres:latest
+    container_name: db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=sria_membership_db
+      - POSTGRES_USER=sria_membership_user
+      - POSTGRES_PASSWORD=$r!@U$3r
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U sria_membership_user -p 5432 -d sria_membership_db"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+
+  sria_membership_site:
+    image: meissasoft/sria_membership_site:latest
+    container_name: sria_membership_site
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      - DATABASE_URL=postgres://sria_membership_user:$r!@U$3r@db:5432/sria_membership_db
+      - DEBUG=False
+      - RUN_MIGRATE=True
+    depends_on:
+      - db
+    links:
+      - db
+    # volumes:
+    #   - "./:/app/"
+    ports:
+      - 8000:8000
